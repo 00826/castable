@@ -5,8 +5,8 @@ local IsServer = RunService:IsServer()
 
 local Players = game:GetService("Players")
 
-export type Input = { [string]: any }
-export type Packet = { [string]: any } & { flag: buffer; }
+export type Input = { [string]: unknown; }
+export type Packet = { flag: buffer; [string]: unknown; }
 
 export type MinimalFlag = {
 	roll: number?;
@@ -14,18 +14,18 @@ export type MinimalFlag = {
 	step: number?;
 }
 export type UnpackedFlag = {
-	--- numeric id of this castable
+	--- numeric index of this castable
 	castable: number;
-	--- rng roll
+	--- roll
 	roll: number;
 	--- caster latency
 	latency: number;
-	--- castable step
+	--- step
 	step: number;
 }
 
-export type Castable = { [string]: any } & {
-	--- id of this castable
+export type Castable = {
+	--- string id of this castable
 	id: string;
 	--- call when an input related to this castable is read
 	input: (input: Input) -> ();
@@ -33,22 +33,28 @@ export type Castable = { [string]: any } & {
 	recv: (recvpacket: Packet) -> ();
 	--- call when rendering any visual effect related to this castable
 	render: (unpackedflag: UnpackedFlag, ...any) -> ();
+
+	--- unknown/undefined
+	[string]: unknown;
 }
 
-export type ServerCastable = { [string]: any } & {
-	--- id of this castable
+export type ServerCastable = {
+	--- string id of this castable
 	id: string;
 	--- internally called when server receives a packet related to this castable \
 	--- or call when a server-owned caster desires to use this castable
 	input: (caster: Model, input: Packet) -> ();
+
+	--- unknown/undefined
+	[string]: unknown;
 }
 
 type ClientArg = 
 	| nil
 	| number
 	| Player
-	| { number|Player }
-	| ((Player) -> boolean)
+	| { number | Player }
+	| (Player) -> boolean
 
 local types = {
 	Remote = script.Parent:WaitForChild("CastRemote");
@@ -58,7 +64,7 @@ local types = {
 	Array = table.create(#script.Parent:GetChildren());
 }
 
---- normalizes castable as a number
+--- returns castable represented as a number
 function types.tonumber(castable: number|string)
 	if type(castable) == "string" then
 		local idx = table.find(types.Array, castable)
@@ -71,7 +77,7 @@ function types.tonumber(castable: number|string)
 	end
 end
 
---- normalizes castable as a string
+--- returns castable represented as a string
 function types.tostring(castable: number|string)
 	if type(castable) == "string" then
 		local idx = table.find(types.Array, castable)
@@ -87,11 +93,10 @@ end
 --- returns packed flag and its associated u32 integer with respect to minimally-populated unpacked flag \
 --- latency, if passed, is in seconds and is clamped within range `[0, 0.255]` (255ms)
 function types.packflag(m: {castable: number|string} & MinimalFlag)
-	local int = 0
-	int = bit32.replace(int, types.tonumber(m.castable), 22, 10)
-	int = bit32.replace(int, m.roll or types.R:NextInteger(0, 1023), 12, 10)
-	int = bit32.replace(int, m.latency and math.clamp(m.latency * 1000, 0, 255) or 0, 4, 8)
-	int = bit32.replace(int, m.step or 0, 0, 4)
+	local int = bit32.replace(0, types.tonumber(m.castable), 22, 10)
+		int = bit32.replace(int, m.roll or types.R:NextInteger(0, 1023), 12, 10)
+		int = bit32.replace(int, m.latency and math.clamp(m.latency * 1000, 0, 255) or 0, 4, 8)
+		int = bit32.replace(int, m.step or 0, 0, 4)
 
 	local flag = buffer.create(4)
 	buffer.writeu32(flag, 0, int)
