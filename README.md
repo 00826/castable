@@ -8,6 +8,12 @@ castables are retrieved with `/Client.get()` or `/Server.get()`, or can be direc
 
 every castable must exist in both `/Server` and `/Client` as same-name equivalents. should a castable not have its equivalent on require, the server will emit a warning and the castable will not be accessible during runtime. this should be treated as a fatal warning as castables are indexed alphabetically to fit nicely into a castable flag
 
+## caveats
+
+no-network-roundtrip castable structure implies that non-deterministic components of any castable can be interpreted as "poisoned" such as the roll component of the castable flag that is intended to be used as a value to solve for rng-reliant components such as dodges, criticals, etc
+
+another drawback is desync between peers, as from real testing there are some cases where castables become a desynced because of differences in connection or the *very* delayed physics networking amongst peers with similar connections
+
 ## flags
 
 |field (width)|range|value|

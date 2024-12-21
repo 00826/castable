@@ -5,14 +5,22 @@ local IsServer = RunService:IsServer()
 
 local Players = game:GetService("Players")
 
+--- type describing set of inputs that are passed into castable.input()
 export type Input = { [string]: unknown; }
+
+--- type describing castable network packet
 export type Packet = { flag: buffer; [string]: unknown; }
 
+--- type describing the minimal set of entries for a castable flag
 export type MinimalFlag = {
+	--- roll
 	roll: number?;
+	--- caster latency
 	latency: number?;
+	--- step
 	step: number?;
 }
+--- type describing an unpacked castable flag (buffer)
 export type UnpackedFlag = {
 	--- numeric index of this castable
 	castable: number;
@@ -64,7 +72,7 @@ local types = {
 	Array = table.create(#script.Parent:GetChildren());
 }
 
---- returns castable represented as a number
+--- returns number (offset) representation of castable offset or string
 function types.tonumber(castable: number|string)
 	if type(castable) == "string" then
 		local idx = table.find(types.Array, castable)
@@ -77,7 +85,7 @@ function types.tonumber(castable: number|string)
 	end
 end
 
---- returns castable represented as a string
+--- returns string representation of castable offset or string
 function types.tostring(castable: number|string)
 	if type(castable) == "string" then
 		local idx = table.find(types.Array, castable)
