@@ -20,6 +20,7 @@ export type MinimalFlag = {
 	--- step
 	step: number?;
 }
+
 --- type describing an unpacked castable flag (buffer)
 export type UnpackedFlag = {
 	--- numeric index of this castable
