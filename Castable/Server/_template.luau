@@ -17,7 +17,7 @@ local _template = { id = script.Name; } :: types.ServerCastable
 assert(ClientCast, `servercast "{_template.id}" missing client counterpart`)
 assert(ClientCast.id == _template.id, `castable id mismatch: "{ClientCast.id}" (client), "{_template.id}" (server)`)
 
-function _template.input(caster: Model, input: types.Packet)
+function _template.input(caster: Player?, input: types.Packet)
 	local castid = _template.id
 	local unpacked = types.unpackflag(input.flag)
 	local step, roll = unpacked.step, unpacked.roll

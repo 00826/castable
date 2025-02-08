@@ -52,7 +52,7 @@ export type ServerCastable = {
 	id: string;
 	--- internally called when server receives a packet related to this castable \
 	--- or call when a server-owned caster desires to use this castable
-	input: (caster: Model, input: Packet) -> ();
+	input: (caster: Player, input: Packet) -> ();
 
 	--- unknown/undefined
 	[string]: unknown;
@@ -99,13 +99,56 @@ function types.tostring(castable: number|string)
 	end
 end
 
+--- packs array of castables into a buffer
+function types.pack(list: {number|string})
+	local p = buffer.create(#list)
+	for i, value in ipairs(list) do
+		if type(value) == "string" then
+			local idx = table.find(types.Array, value)
+			if not idx then
+				buffer.writeu8(p, i - 1, 0)
+			else
+				buffer.writeu8(p, i - 1, idx)
+			end
+		elseif type(value) == "number" then
+			if value > 255 then
+				buffer.writeu8(p, i - 1, 0)
+			elseif value < 1 then
+				buffer.writeu8(p, i - 1, 0)
+			else
+				buffer.writeu8(p, i - 1, value)
+			end
+		end
+	end
+
+	return p
+end
+
+--- returns byte offset of castable inside of pack
+function types.findinpack(pack: buffer, castable: number|string): number?
+	local number = types.tonumber(castable)
+	if number == 0 then
+		return nil
+	else
+		for i = 1, buffer.len(pack) do
+			i -= 1
+
+			if buffer.readu8(pack, i) == number then
+				return i
+			end
+		end
+	end
+
+	return nil
+end
+
 --- returns packed flag and its associated u32 integer with respect to minimally-populated unpacked flag \
 --- latency, if passed, is in seconds and is clamped within range `[0, 0.255]` (255ms)
-function types.packflag(m: {castable: number|string} & MinimalFlag)
-	local int = bit32.replace(0, types.tonumber(m.castable), 22, 10)
-		int = bit32.replace(int, m.roll or types.R:NextInteger(0, 1023), 12, 10)
-		int = bit32.replace(int, m.latency and math.clamp(m.latency * 1000, 0, 255) or 0, 4, 8)
-		int = bit32.replace(int, m.step or 0, 0, 4)
+function types.packflag(min: {castable: number|string} & MinimalFlag)
+	local int = bit32.replace(0, types.tonumber(min.castable), 22, 10)
+		int = bit32.replace(int, min.roll or types.R:NextInteger(0, 1023), 12, 10)
+		int = bit32.replace(int, min.latency and math.clamp(min.latency * 1000, 0, 255) or 0, 4, 8)
+		int = bit32.replace(int, min.step or 0, 0, 4)
 
 	local flag = buffer.create(4)
 	buffer.writeu32(flag, 0, int)
@@ -128,16 +171,16 @@ end
 --- merges minimally-populated unpacked flag into packed flag \
 --- latency, if passed, is in seconds and is clamped within range `[0, 0.255]` (255ms) \
 --- returns flag for convenience
-function types.mergeflag(f: buffer, m: MinimalFlag)
+function types.mergeflag(f: buffer, min: MinimalFlag)
 	local int = buffer.readu32(f, 0)
-	if m.roll then
-		int = bit32.replace(int, m.roll, 12, 10)
+	if min.roll then
+		int = bit32.replace(int, min.roll, 12, 10)
 	end
-	if m.latency then
-		int = bit32.replace(int, math.clamp(m.latency * 1000, 0, 255), 4, 8)
+	if min.latency then
+		int = bit32.replace(int, math.clamp(min.latency * 1000, 0, 255), 4, 8)
 	end
-	if m.step then
-		int = bit32.replace(int, m.step, 0, 4)
+	if min.step then
+		int = bit32.replace(int, min.step, 0, 4)
 	end
 
 	buffer.writeu32(f, 0, int)

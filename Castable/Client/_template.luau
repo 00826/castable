@@ -32,7 +32,7 @@ function _template.input(castinput: types.Input & _input)
 	types.send({flag = flag;})
 end
 
-type _recv = { vector: Vector3 }
+type _recv = {  }
 
 function _template.recv(recvpacket: types.Packet & _recv)
 	local flag = recvpacket.flag

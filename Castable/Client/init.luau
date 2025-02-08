@@ -53,11 +53,14 @@ if RunService:IsClient() then
 end
 
 --- returns client castable
-function CastableClient.get(castable: string): types.Castable
-	local c = CastableClient.Modules[castable]
-	assert(c, `castable "{castable}" does not exist`)
+function CastableClient.get(castable: string|number): types.Castable?
+	if type(castable) == "number" then
+		return CastableClient.Modules[types.Array[castable]]
+	elseif type(castable) == "string" then
+		return CastableClient.Modules[castable]
+	end
 
-	return c
+	return
 end
 
 return CastableClient

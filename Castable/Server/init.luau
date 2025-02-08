@@ -31,7 +31,6 @@ end
 
 if RunService:IsServer() then
 	Client.types.Remote.OnServerEvent:Connect(function(player: Player, sendpacket: types.Packet)
-		assert(player.Character)
 		assert(type(sendpacket) == "table")
 		assert(type(sendpacket.flag) == "buffer")
 
@@ -40,7 +39,7 @@ if RunService:IsServer() then
 		local id = types.Array[idx]
 		assert(id, `{id} from index {idx} does not exist`)
 
-		CastableServer.Modules[id].input(player.Character, sendpacket)
+		CastableServer.Modules[id].input(player, sendpacket)
 	end)
 end
 
