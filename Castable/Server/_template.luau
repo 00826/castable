@@ -28,6 +28,8 @@ function _template.input(caster: Player?, input: types.Packet)
 		types.send({flag = types.packflag({castable = castid; roll = roll; latency = 0;});})
 	end
 
+	task.defer(types.stepped)
+
 	return
 end
 

@@ -68,6 +68,7 @@ type ClientArg =
 local types = {
 	Remote = script.Parent:WaitForChild("CastRemote");
 	R = Random.new();
+	rollmaxvalue = 1024 - 1;
 
 	Blacklist = { "_template"; "_types"; };
 	Array = table.create(#script.Parent:GetChildren());
@@ -131,9 +132,7 @@ function types.findinpack(pack: buffer, castable: number|string): number?
 		return nil
 	else
 		for i = 1, buffer.len(pack) do
-			i -= 1
-
-			if buffer.readu8(pack, i) == number then
+			if buffer.readu8(pack, i - 1) == number then
 				return i
 			end
 		end
@@ -146,7 +145,7 @@ end
 --- latency, if passed, is in seconds and is clamped within range `[0, 0.255]` (255ms)
 function types.packflag(min: {castable: number|string} & MinimalFlag)
 	local int = bit32.replace(0, types.tonumber(min.castable), 22, 10)
-		int = bit32.replace(int, min.roll or types.R:NextInteger(0, 1023), 12, 10)
+		int = bit32.replace(int, min.roll or types.R:NextInteger(0, types.rollmaxvalue), 12, 10)
 		int = bit32.replace(int, min.latency and math.clamp(min.latency * 1000, 0, 255) or 0, 4, 8)
 		int = bit32.replace(int, min.step or 0, 0, 4)
 
@@ -230,6 +229,18 @@ function types.send(packet: Packet, clientarg: ClientArg?)
 	else
 		types.Remote:FireServer(packet)
 	end
+end
+
+--- optionally deferred when a castable step is reached \
+--- left blank to be overwritten externally
+function types.stepped(...)
+	
+end
+
+--- optionally deferred when a "hit" should be applied \
+--- left blank to be overwritten externally
+function types.hit(...)
+	
 end
 
 return types

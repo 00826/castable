@@ -47,9 +47,11 @@ function _template.render(unpackedflag: types.UnpackedFlag)
 	--- local R = Random.new(roll)
 
 	if step == 0 then
-		
+		--- task.defer(types.hit)
 	end
 
+	task.defer(types.stepped)
+	
 	return
 end
 
